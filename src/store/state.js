@@ -1,5 +1,4 @@
 export default {
-  list: [],
-  item: null,
-  toUpdate: null
+  todos: [],
+  todo: null,
 }

@@ -1,20 +1,20 @@
 import _ from 'lodash'
 
 export default {
-  getList ({ list }) {
-    const copy = _.cloneDeep(list)
-    return copy
+  getTodos ({ todos }) {
+    const copy = _.cloneDeep(todos)
+    return copy.sort((c, p) => {
+      if (c.text < p.text) return -1
+      else if (c.text > p.text) return 1
+      else return 0
+    })
   },
-  getItem ({ item }) {
-    if (!item) return {}
-    else return item
+  getTodo ({ todo }) {
+    if (!todo) return {}
+    else return _.cloneDeep(todo)
   },
-  hasItem ({ item }) {
-    if (!item) return false
-    else return true
-  },
-  isToUpdate ({ toUpdate }) {
-    if (!toUpdate) return false
+  hasTodo ({ todo }) {
+    if (!todo) return false
     else return true
   }
 }

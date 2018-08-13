@@ -16,7 +16,7 @@
       <li><a href="http://vue-loader.vuejs.org/" target="_blank">vue-loader</a></li>
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank">awesome-vue</a></li>
     </ul> -->
-    <form class="form" @submit.prevent="addToDo(todo)">
+    <form class="form" @submit.prevent="addTodo(todo)">
       <div class="form__input">
         <label for="todo"
                class="input-label"
@@ -25,31 +25,117 @@
         </label>
         <input id="todo" type="text" name="todo" v-model="todo.text">
       </div>
-      <div class="form__btn">
-        <button type="submit" name="submit">Save</button>
+      <div class="form__btn" v-if="!hasTodo">
+        <button type="submit" name="submit" :disabled="!todo.text">Save</button>
+      </div>
+      <div class="form__btn" v-else>
+        <button class="edit" type="button" name="edit" @click.prevent="edit(todo)" :disabled="!todo.text">Edit</button>
+        <button class="remove" type="button" name="cancel" @click.prevent="cancel()">Cancel</button>
       </div>
     </form>
     <div class="view">
-
+      <div class="view__progress-bar">
+        <div class="view__progress-bar__box">
+          <div class="view__progress-bar__box__content" :style="{ width: `${totalDone}%` }"></div>
+        </div>
+      </div>
+      <div class="view__items">
+        <div class="view__items__todo">
+          <div class="view__items__todo__text">
+            <h4>To Do</h4>
+          </div>
+          <div class="view__items__todo__checkbox">
+            <h4>Done</h4>
+          </div>
+          <div class="view__items__todo__options">
+            <h4>Options</h4>
+          </div>
+        </div>
+        <div class="view__items__todo"
+             v-for="td in todos">
+          <div class="view__items__todo__text">
+            <span>{{ td.text }}</span>
+          </div>
+          <div class="view__items__todo__checkbox">
+            <input type="checkbox" @change="doneChanged(td)" v-model="td.done">
+          </div>
+          <div class="view__items__todo__options">
+            <button class="edit" @click="setToEdit(td)" :disabled="hasTodo">Edit</button>
+            <button class="remove" @click="remove(td._key)" :disabled="hasTodo">Remove</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex'
+
 export default {
   name: 'app',
   data () {
     return {
       todo: {
         text: '',
-        finished: false
+        done: false
+      }
+    }
+  },
+  computed: {
+    ...mapGetters({
+      todos: 'getTodos',
+      hasTodo: 'hasTodo',
+      currentTodo: 'getTodo'
+    }),
+    totalDone () {
+      let done = 0
+      if (this.todos.length === 0) return 0
+      else {
+        this.todos.map(t => {
+          if (t.done) done++
+        })
+        return (done * 100)/this.todos.length
       }
     }
   },
   methods: {
-    addToDo (todo) {
-      console.log(todo)
+    ...mapActions([
+      'add',
+      'getAll',
+      'edit',
+      'remove'
+    ]),
+    addTodo (todo) {
+      this.add(todo)
+      this.todo = {
+        text: '',
+        done: false
+      }
+    },
+    doneChanged (todo) {
+      this.edit(todo)
+    },
+    setToEdit (todo) {
+      this.$store.commit('setTodo', todo)
+      this.todo = this.currentTodo
+    },
+    editTodo (todo) {
+      this.edit(todo)
+      this.cancel()
+    },
+    cancel () {
+      this.todo = {
+        text: '',
+        done: false
+      }
+      this.$store.commit('setTodo', null)
     }
+  },
+  mounted () {
+    setTimeout(() => {
+      this.getAll()
+    }, 1000)
   }
 }
 </script>
@@ -59,6 +145,8 @@ $color-black: #2c3e50;
 $color-white: #fff;
 $color-gray: #ddd;
 $color-green: #42b983;
+$color-blue: #4A70FE;
+$color-red: lighten(#C2003C, 10);
 
 $radius: 150px;
 
@@ -93,7 +181,6 @@ a {
   display: flex;
   justify-content: center;
   flex-direction: column;
-  border: 2px solid ;
   padding: 10px;
   &__input {
     display: inline-block;
@@ -101,7 +188,7 @@ a {
     padding: 5px 0px;
     label {
       position: absolute;
-      transition: all .1s;
+      transition: all .2s ease-out;
       top: 10px;
       padding-left: 5px;
       font-size: 16px;
@@ -126,21 +213,131 @@ a {
   &__btn {
     display: inline-block;
     padding: 5px 0px;
+    font-weight: 600;
     button {
-      color: darken($color-white, 5);
-      font-weight: 600;
       letter-spacing: 1.5px;
       border: 2px solid lighten($color-green, 10);
       background-color: lighten($color-green, 10);
       padding: 5px 15px;
       border-radius: $radius;
+      &:hover {
+        border-color: lighten($color-green, 20);
+        background-color: lighten($color-green, 20);
+      }
+      &:disabled {
+        border-color: lighten($color-green, 30);
+        background-color: lighten($color-green, 30);
+        cursor: not-allowed;
+      }
     }
+  }
+}
+
+button {
+  color: darken($color-white, 5);
+  border-style: solid;
+  transition: all .2s;
+  &.edit {
+    border-color: $color-blue;
+    background-color: $color-blue;
+    &:hover {
+      border-color: lighten($color-blue, 10);
+      background-color: lighten($color-blue, 10);
+    }
+    &:disabled {
+      border-color: lighten($color-blue, 20);
+      background-color: lighten($color-blue, 20);
+    }
+  }
+  &.remove {
+    border-color: $color-red;
+    background-color: $color-red;
+    &:hover {
+      border-color: lighten($color-red, 20);
+      background-color: lighten($color-red, 20);
+    }
+    &:disabled {
+      border-color: lighten($color-red, 30);
+      background-color: lighten($color-red, 30);
+    }
+  }
+  &:hover {
+    cursor: pointer;
+  }
+  &:disabled {
+    cursor: not-allowed;
   }
 }
 
 .view {
   display: flex;
-  border: 2px solid $color-gray;
+  border-top: 2px solid $color-gray;
   padding: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-content: stretch;
+  &__progress-bar {
+    width: 100%;
+    padding: 5px 15px;
+    &__box {
+      width: calc(100% - 40px);
+      height: 30px;
+      border: 5px solid $color-gray;
+      border-radius: $radius;
+      &__content {
+        width: 0%;
+        transition: width .75s ease-out;
+        height: 100%;
+        background-image: linear-gradient(to right, lighten($color-green, 10), $color-green);
+        border-radius: $radius;
+      }
+    }
+  }
+  &__items {
+    border: 2px solid black;
+    padding: 5px 15px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-content: stretch;
+    &__todo {
+      display: flex;
+      flex-direction: row;
+      align-content: center;
+      align-self: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 550px;
+      padding: 5px 15px;
+      &:first-child {
+        height: 40px;
+        border-bottom: 2px solid $color-black;
+        margin-bottom: 5px;
+        .view__items__todo__text {
+          text-align: center;
+        }
+      }
+      &__text {
+        flex-basis: 55%;
+        text-align: left;
+        vertical-align: middle;
+      }
+      &__checkbox {
+        text-align: left;
+        flex-basis: 15%;
+        display: flex;
+        justify-content: center;
+        input {
+          align-self: center;
+        }
+      }
+      &__options {
+        flex-basis: 30%;
+        button {
+          border-radius: 5px;
+        }
+      }
+    }
+  }
 }
 </style>

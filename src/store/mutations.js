@@ -1,20 +1,21 @@
 import Vue from 'vue'
 
 export default {
-  addItem (state, item) {
-    state.list.push(item)
+  setTodos (state, todos) {
+    Vue.set(state, 'todos', todos)
   },
-  setItem (state, item) {
-    state.item = item
+  setTodo (state, todo) {
+    state.todo = todo
   },
-  setToUpdate (state, item) {
-    state.toUpdate = item
+  addTodo (state, todo) {
+    state.todos.push(todo)
   },
-  update (state, item) {
-    const uid = state.toUpdate
-    Vue.set(state.list, uid, item)
+  editTodo (state, todo) {
+    const index = state.todos.findIndex(x => x._key === todo._key)
+    Vue.set(state.todos, index, todo)
   },
-  remove (state, uid) {
-    Vue.delete(state.list, uid)
+  removeTodo (state, key) {
+    const index = state.todos.findIndex(x => x._key === key)
+    Vue.delete(state.todos, index)
   }
 }
