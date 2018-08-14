@@ -6,8 +6,8 @@ import { add, getAll, edit, remove } from './indexedDB'
 export default {
   getAll ({ commit }) {
     getAll()
-      .then(ev => {
-        commit('setTodos', ev.target.result)
+      .then(result => {
+        commit('setTodos', result)
         console.log('GetAll Successful')
       })
       .catch(error => {
@@ -19,7 +19,7 @@ export default {
     let copy = _.cloneDeep(todo)
     Vue.set(copy, '_key', uuid())
     add(copy)
-      .then(ev => {
+      .then(result => {
         commit('addTodo', copy)
         console.log('Add Successful')
       })
@@ -29,9 +29,8 @@ export default {
       })
   },
   edit ({ commit }, todo) {
-    console.log(todo)
     edit(todo)
-      .then(ev => {
+      .then(result => {
         commit('editTodo', todo)
         console.log('Edit Successful')
       })
@@ -42,7 +41,7 @@ export default {
   },
   remove ({ commit }, key) {
     remove(key)
-      .then(ev => {
+      .then(result => {
         commit('removeTodo', key)
         console.log('Delete Successful')
       })

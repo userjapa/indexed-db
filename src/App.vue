@@ -29,7 +29,7 @@
         <button type="submit" name="submit" :disabled="!todo.text">Save</button>
       </div>
       <div class="form__btn" v-else>
-        <button class="edit" type="button" name="edit" @click.prevent="edit(todo)" :disabled="!todo.text">Edit</button>
+        <button class="edit" type="button" name="edit" @click.prevent="editTodo(todo)" :disabled="!todo.text">Edit</button>
         <button class="remove" type="button" name="cancel" @click.prevent="cancel()">Cancel</button>
       </div>
     </form>
@@ -37,6 +37,15 @@
       <div class="view__progress-bar">
         <div class="view__progress-bar__box">
           <div class="view__progress-bar__box__content" :style="{ width: `${totalDone}%` }"></div>
+        </div>
+      </div>
+      <div class="view__ops">
+        <div class="view__ops__done">
+          <label for="show_done">Show Done</label>
+          <input type="checkbox" name="show_done" v-model="onlyDone">
+        </div>
+        <div class="view__ops__clean">
+          <button type="button" name="clean" @click="clearDone()" :disabled="done.length == 0">Clear Done</button>
         </div>
       </div>
       <div class="view__items">
@@ -52,7 +61,7 @@
           </div>
         </div>
         <div class="view__items__todo"
-             v-for="td in todos">
+             v-for="td in onlyDone?done:todos">
           <div class="view__items__todo__text">
             <span>{{ td.text }}</span>
           </div>
@@ -79,12 +88,14 @@ export default {
       todo: {
         text: '',
         done: false
-      }
+      },
+      onlyDone: false
     }
   },
   computed: {
     ...mapGetters({
       todos: 'getTodos',
+      done: 'getDone',
       hasTodo: 'hasTodo',
       currentTodo: 'getTodo'
     }),
@@ -107,10 +118,12 @@ export default {
       'remove'
     ]),
     addTodo (todo) {
-      this.add(todo)
-      this.todo = {
-        text: '',
-        done: false
+      if (!this.hasTodo) {
+        this.add(todo)
+        this.todo = {
+          text: '',
+          done: false
+        }
       }
     },
     doneChanged (todo) {
@@ -130,6 +143,11 @@ export default {
         done: false
       }
       this.$store.commit('setTodo', null)
+    },
+    clearDone () {
+      this.done.map(t => {
+        this.remove(t._key)
+      })
     }
   },
   mounted () {
@@ -147,6 +165,7 @@ $color-gray: #ddd;
 $color-green: #42b983;
 $color-blue: #4A70FE;
 $color-red: lighten(#C2003C, 10);
+$color-orange: #FF9C00;
 
 $radius: 150px;
 
@@ -293,8 +312,46 @@ button {
       }
     }
   }
+  &__ops {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    &__done {
+      margin-bottom: 5px;
+      display: flex;
+      align-self: center;
+      height: 20px;
+      label {
+        vertical-align: middle;
+        margin-bottom: 2.5px;
+      }
+      input {
+        align-self: center;
+        margin: 0px 0px 5px 5px;
+      }
+    }
+    &__clean {
+      button {
+        border-radius: $radius;
+        padding: 6px 15px;
+        border-color: lighten($color-orange, 10);
+        background-color: lighten($color-orange, 10);
+        &:hover {
+          border-color: lighten($color-orange, 20);
+          background-color: lighten($color-orange, 20);
+        }
+        &:active {
+          border-color: lighten($color-orange, 25);
+          background-color: lighten($color-orange, 25);
+        }
+        &:disabled {
+          border-color: lighten($color-orange, 30);
+          background-color: lighten($color-orange, 30);
+        }
+      }
+    }
+  }
   &__items {
-    border: 2px solid black;
     padding: 5px 15px;
     display: flex;
     justify-content: center;
@@ -311,7 +368,7 @@ button {
       padding: 5px 15px;
       &:first-child {
         height: 40px;
-        border-bottom: 2px solid $color-black;
+        border-bottom: 2px solid $color-gray;
         margin-bottom: 5px;
         .view__items__todo__text {
           text-align: center;
@@ -338,6 +395,12 @@ button {
         }
       }
     }
+  }
+}
+
+@media screen and (min-width: 640px) {
+  #app {
+
   }
 }
 </style>

@@ -33,15 +33,27 @@ const storeSuccess = event => {
   console.log('Store Request Successful!');
 }
 
+const createObjectStore = () => {
+  let transaction = database.transaction(['todos'], 'readwrite')
+  transaction.oncomplete = transactionComplete
+  transaction.onerror = transactionError
+  return transaction.objectStore('todos')
+}
+
+const setStoreRequestHandlers = (storeRequest, resolve, reject) => {
+  storeRequest.onsuccess = event => {
+    resolve(event.target.result)
+  }
+  storeRequest.onerror = event => {
+    reject(event.target.error)
+  }
+}
+
 const getAll = () => {
   return new Promise((resolve, reject) => {
-    let transaction = database.transaction(['todos'], 'readwrite')
-    transaction.oncomplete = transactionComplete
-    transaction.onerror = transactionError
-    const todoStore = transaction.objectStore('todos')
+    const todoStore = createObjectStore()
     let storeRequest = todoStore.getAll()
-    storeRequest.onsuccess = resolve
-    storeRequest.onerror = reject
+    setStoreRequestHandlers(storeRequest, resolve, reject)
   })
 }
 
@@ -58,13 +70,9 @@ const add = todo => {
     }
     if (!!error) reject(error)
     else {
-      let transaction = database.transaction(['todos'], 'readwrite')
-      transaction.oncomplete = transactionComplete
-      transaction.onerror = transactionError
-      const todoStore = transaction.objectStore('todos')
+      const todoStore = createObjectStore()
       let storeRequest = todoStore.add(todo)
-      storeRequest.onsuccess = resolve
-      storeRequest.onerror = reject
+      setStoreRequestHandlers(storeRequest, resolve, reject)
     }
   })
 }
@@ -82,13 +90,9 @@ const edit = (todo) => {
     }
     if (!!error) reject(error)
     else {
-      let transaction = database.transaction(['todos'], 'readwrite')
-      transaction.oncomplete = transactionComplete
-      transaction.onerror = transactionError
-      const todoStore = transaction.objectStore('todos')
+      const todoStore = createObjectStore()
       let storeRequest = todoStore.put(todo)
-      storeRequest.onsuccess = resolve
-      storeRequest.onerror = reject
+      setStoreRequestHandlers(storeRequest, resolve, reject)
     }
   })
 }
@@ -97,13 +101,9 @@ const remove = key => {
   return new Promise((resolve, reject) => {
     if (!key) reject({ message: 'Object Key is Required!' })
     else {
-      let transaction = database.transaction(['todos'], 'readwrite')
-      transaction.oncomplete = transactionComplete
-      transaction.onerror = transactionError
-      const todoStore = transaction.objectStore('todos')
+      const todoStore = createObjectStore()
       let storeRequest = todoStore.delete(key)
-      storeRequest.onsuccess = resolve
-      storeRequest.onerror = reject
+      setStoreRequestHandlers(storeRequest, resolve, reject)
     }
   })
 }

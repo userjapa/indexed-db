@@ -9,6 +9,16 @@ export default {
       else return 0
     })
   },
+  getDone ({ todos }) {
+    const copy = _.cloneDeep(todos)
+    return copy
+            .filter(t => t.done)
+            .sort((c, p) => {
+              if (c.text < p.text) return -1
+              else if (c.text > p.text) return 1
+              else return 0
+            })
+  },
   getTodo ({ todo }) {
     if (!todo) return {}
     else return _.cloneDeep(todo)
